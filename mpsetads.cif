@@ -1,5 +1,5 @@
 $
-&dimen -save -dimen meter tons
+&dimen -save -dimen meters m-tons
 &device  -mecho n -g_default screen
 &device -primary file -oecho n
 &channel gra_dev -p_device PNG
@@ -62,249 +62,185 @@ $
 $
 $ Defining blocks
 $
-&set col_len = 7.8               
-&set col_wid = 8.1
-&set col_height = 28
-&set col_radio = 0.8
-&set x0 = 58
-&set y0 = 33.3
-&set x1 = 58-7.8-9.6
-&set x1 = 40.6
-&set y1 = 33.3-7.8-8.1-7.8
-&set y1 = 17.4
-&set corner_r = 1.5
-&set atany1_x1 = 23.5
+&set c_len = 7.8 
+&set c_wid = 8.1
+&set c_dep = 28
+&set c_r = 0.8
+$ moonpool as (x=0 fwd(+),y=0 port(+)
+&set f_x = 33.55 $center of fw_col
+&set c_x = 23.85 $24.45
+&set c_y = 33.3   
 
-&set tany1_x1 = 0.4348
-&set cosy1_x1 = 0.91706
-&set b1_len = 44.1
+&set x0 = 1.5
+&set ang = 23
 
-&set b1_wid = 13.8
-&set b_height = 6.0
-
-&set b2 = 12+8.1
-
+&set pp_len = 48.599
+&set pp_wid = 13.8
+&set pa_len = 17.4
+&set pa_wid = 82.8
+&set pa_x = 49.9 
+&set p_y = 32.55
+&set p_dep = 6.0
+&set tunnel = 1.8
 $ column
-block c1 -location -%col_len% 0 0 0 0 0
-  plane 0  -rect 0  %col_height% 2*(%col_wid%-%corner_r%)
-  plane %corner_r% 2*%col_len%-%corner_r% -rect 0  %col_height% 2*%col_wid%
-  plane 2*%col_len% -rect 0  %col_height% 2*(%col_wid%-%corner_r%)
+block cf -location %f_x% 0 0 0 0 0
+  plane -%c_len%  -rect 0  %c_dep% 2*(%c_wid%-%c_r%)
+  plane -%c_len%+%c_r% %c_len%-%c_r% -rect 0  %c_dep% 2*%c_wid%
+  plane %c_len% -rect 0  %c_dep% 2*(%c_wid%-%c_r%)
 end  
 
-move_block c1 c2 %x0% -%y0% 0 0 0 90
-&set subt = c2
-$suplot c2
-move_block c1 c3 %x0% %y0% 0 0 0 -90
-&set subt = c3
-$suplot c3
-$ pontoon
+$copy port
 
-block b1 -port -location %col_len% -%col_wid%  0 0 0 -%atany1_x1%
-  plane 0 52 -cart 0 0 \
-                          13.8 0 \
-                          13.8 6 \
-                          0 6
+block cp -location -%c_x% %c_y% 0 
+   plane -%c_wid%  -rect 0 %c_dep% 2*(%c_len%-%c_r%)
+   plane -%c_wid%+%c_r% %c_wid%-%c_r% -rect 0  %c_dep% 2*%c_len%
+  plane %c_wid% -rect 0  %c_dep% 2*(%c_len%-%c_r%)
+end   
+
+reflect_block cp cs y
+
+union cf cp cfp
+
+union cfp cs cfps
+
+$ pontoon (port)
+block pp  -location -(%c_x%+%x0)+%c_wid% %c_y%  0 0 0 -%ang%
+  plane 0 %pp_len%+%c_len%/2 -rect 0 %p_dep% %pp_wid% 
 end
 
-reflect_block b1 b2 y
+reflect_block pp ps y
+union pp cf tmp $work around
 
-block b3 -location 50.2 0 0
-  plane 0 -rect 0 %b_height% 79.2-3
-  plane 1.5 13.8+6.3-1.5 -rect 0 %b_height% 79.2
-  plane 13.8+6.3 -rect 0 %b_height% 79.2-3
+union pp ps pps
+
+
+$&set subt = pps
+$suplot pps
+block pa -location -%c_x%-%c_wid% 0 0
+  plane 0 %pa_len% -rect 0 %p_dep% %pa_wid%
 end
 
-block b11 -port -location -6.9 -7.9 0
+union pa cp tmp1
+
+union pps pa ppsa
+
+
+union cfps ppsa cpall
+
+
+block pft1 -stbd -location %f_x%-5.5 %c_wid% 0
   plane 0 -cart 0 0 \
-             8.3 0 \
-             8.3 6 \
-              0 6
-  plane 9.2 -cart 0 0 \
-                13 0 \
-                13 6 \
+                0.1 0 \
+                0.1 6 \
                 0 6
-  plane  15 -cart 0 0 \
-                 0 6 
+  plane 5 -cart 0 0 \ 
+                      11 0 \
+                    11 6 \
+                     0 6
+  plane 12 -cart 0 0 \
+                7 0 \
+                7 6 \
+                0 6
 end
+reflect_block pft1 sft2 y
+
+union pft1 cf tmp2
+union tmp2 pp tmp3
 
 
-reflect_block b11 b22 y
+union sft2 cf tmp4
+union tmp4 ps tmp5
 
-&set subt = b11
-suplot b11
-&set subt = b22
-suplot b22
+union pft1 sft2 p1
 
-union b1 b11 b10
-&set subt = b10
-$suplot b10
-
-union c1 b10 cb1
-&set subt = cb1
-$suplot cb1
-
-delete_block c1 b1 b10
-
-union b2 b22 b20
-
-union cb1 b20 cb12
-
-delete_block cb1 b2 b20
-
-&set subt = cb12
-$suplot cb12
-
-union cb12 c2 cb122
-
-delete_block cb12 c2
-
-union cb122 c3 cb123
-
-delete_block cb122 c3
-
-&set subt = cb123
-
-$suplot cb123
-
-union cb123 b3 bot
-
-$deck
-
-&set deck_height = 7.6
-
-block ct1 -location -%col_len% 0 %col_height%-0.1 0 0 0 
-  plane 0  -rect 0  %deck_height%+0.1 2*(%col_wid%-%corner_r%)
-  plane %corner_r% 2*%col_len%-%corner_r% -rect 0  %deck_height%+0.1 2*%col_wid%
-  plane 2*%col_len% -rect 0  %deck_height%+0.1 2*(%col_wid%-%corner_r%)
-end
-
-move_block ct1 ct2 %x0% -%y0% 0 0 0 90
-
-move_block ct1 ct3 %x0% %y0% 0 0 0 -90
-
-block bt1 -port -location %col_len% -%col_wid%  %col_height%-0.1 0 0 -%atany1_x1%
-  plane -0.1 0.1 52+0.1 -cart 0 0 \
-                          13.8 0 \
-                          13.8 %deck_height% \
-                          0 %deck_height%
-end
-
-reflect_block bt1 bt2 y
-
-block bt3 -location 50.2 0 %col_height%-0.1
-  plane -0.1 0  0.1 -rect 0 %deck_height%+0.2 79.2-3
-  plane 1.5 13.8+6.3-1.5 -rect 0 %deck_height%+0.2 79.2
-  plane 13.8+6.3 13.8+6.3+0.1 -rect 0 %deck_height%+0.2 79.2-3
-end
-
-&set subt = bt3
-
-suplot bt3
-
-block bt11 -PORT -location -6.9 -7.9 %col_height%-0.1
-  plane -0.1 0.1 -cart 0 0 \
-             8.3 0 \
-             8.3 %deck_height% \
-              0 %deck_height%
-  plane 9.2 -cart 0 0 \
-                13 0 \
-                13 %deck_height% \
-                0 %deck_height%
-  plane  15 -cart 0 0 \
-                 0 %deck_height% 
-end
-
-reflect_block bt11 bt22 y
-
-union bt1 bt11 bt10
-&set subt = bt10
-$suplot bt10
-
-union ct1 bt10 cbt1
-&set subt = cbt1
-$suplot cbt1
-
-delete_block ct1 bt1 bt11 bt10
-
-union bt2 bt22 bt20
-
-union cbt1 bt20 cbt12
-
-delete_block cbt1 bt2 bt22 bt20
-
-&set subt = cbt12
-suplot cbt12
-
-union cbt12 ct2 cbt122
-
-&set subt = cbt122
-suplot cbt122
-delete_block cbt12 ct2
-
-$$$$
-union cbt122 ct3 cbt123
-&set subt = cbt123
-suplot cbt123
-delete_block cbt122 ct3
-
-&set subt = cbt123
-
-suplot cbt123
-
-union cbt123 bt3 deck
-
-&set subt = deck
-
-suplot deck
-union bot deck tad
+union cpall p1 tad
 
 &set subt = tad
-
 suplot tad
+
+delete_block cf cp
+delete_block cfp cs
+delete_block pp ps
+delete_block pps pa
+delete_block tmp tmp1 tmp2 tmp3 tmp4 tmp5
+
 $compartment
-
-block cf -location -7.8 0 15
-  plane 0 1.5 -rect 0 8 2*%col_wid%-3
+block fttk -location %f_x% 0 0
+  plane %c_len%-%x0% %c_len% -rect 0 %p_dep% 2*%c_wid%
 end
 
-move_block cf cap %x0% -%y0% 0 0 0 90
-
-move_block cf cas %x0% %y0% 0 0 0 -90
-
-block cfp -port -location -7.8 -6.6 15
-  plane 0 15.6 -rect 0 8 3
+block fmp1 -location %f_x% 0 0
+  plane -%c_len% 0 -rect 0 %p_dep% 2*%c_wid%
 end
 
-reflect_block cfp cfs y
-
-move_block cfp capa %x0% -%y0% 0 0 0 90
-move_block cfp casa %x0% %y0% 0 0 0 -270
-
-block cp -location -7.8 0 15
-  plane 0 1.5 -rect 0 8 2*%col_wid%-3
+block pfm1 -location %f_x% %c_wid%/2 0
+   plane 0 %c_len% -rect 0 %p_dep% %c_wid%
 end
 
-block pa1 -port -location 32.9 -23.3 0
-   plane 0 -cart 0 0 \
-                 11 0 \
-                 11 6 \
-                 0 6
-                 
-   plane 4.5 -cart 1.5 0 \
-                 12.5 0 \
-                 12.5 6 \
-                 0 6
-                 
-   plane 9.2 -cart 3 0 \
-   		  14.5 0 \
-   		  14.5 6 \
-   		  0 6
-end   		  
+reflect_block pfm1 sfm2 y
 
-reflect_block pa1 sa1 y
-   
-&set subt = tad
-suplot tad
+block pam3 -location -%c_x%-%c_wid% %c_y%+%c_len%/2 0
+   plane 0 %c_wid% -rect 0 %p_dep% %c_len%
+end
+
+reflect_block pam3 sam5 y
+
+block pam4 -location -%c_x%-%c_wid% %c_y%-%c_len%/2 0
+   plane 0 %c_wid% -rect 0 %p_dep% %c_len%
+end
+
+reflect_block pam4 sam6 y
+
+block pmp2 -location -%c_x% %c_y% 0
+  plane 0 %c_wid% -rect 0 %p_dep% 2*%c_len%
+end
+
+reflect_block pmp2 smp3 y
+
+block pdb3  -location -8.5 31.5 0 0 0 -%ang%
+  plane 0 7.5 -rect 0 %p_dep% %pp_wid%-%tunnel% 
+end
+
+reflect_block pdb3 sdb6 y
+
+block pdb2 -location -2.131 28.535 0 0 0 -%ang%
+  plane 0 9 -rect 0 %p_dep% %pp_wid%-%tunnel% 
+end
+
+reflect_block pdb2 sdb5 y
+
+block pdb1 -location 22.685 17.9 0 0 0 -%ang%
+  plane 0 7.5 -rect 0 %p_dep% %pp_wid%-%tunnel% 
+end
+
+reflect_block pdb1 sdb4 y
+
+block pdb7 -location -%c_x%-%c_wid% 9+4.5 0
+  plane 0 %c_wid% -rect 0 %p_dep% 9
+end
+
+reflect_block pdb7 sdb9 y
+
+block pdb8 -location -%c_x%-%c_wid% 4.5 0
+  plane 0 %c_wid% -rect 0 %p_dep% 9
+end
+
+reflect_block pdb8 sdb10 y
+
+
+block pd1 -location 6.14 25 0 0 0 -%ang%
+  plane 0 9 -rect 0 %p_dep% %pp_wid%-%tunnel% 
+end
+
+reflect_block pd1 sd2 y
+
+block pbo -location 14.413 21.445 0 0 0 -%ang%
+  plane 0 9 -rect 0 %p_dep% %pp_wid%-%tunnel% 
+end
+
+reflect_block pbo sbr y
+
+
 $
 $ Emitting the meshing
 $
@@ -312,16 +248,31 @@ $
 rename_block @ -panel M -sort xyz -equiv .2 -point *M
 emit @ -body tad
 emit tad -piece ' -diftyp 3ddif -cs_curr 1 1 1 -cs_wind 1 1 1' -use_name YES
+emit fttk -use_name -compart "-descri 'fttk' " -piece '-perm -0.98'
+emit fmp1 -use_name -compart "-descri 'fmp1' " -piece '-perm -0.98'
 
-emit pa1 -use_name -compart "-descri 'pa1' " -piece '-perm -0.98'
-emit sa1 -use_name -compart "-descri 'sa1' " -piece '-perm -0.98'
-emit cf  -use_name -compart "-descri 'cf'  " -piece '-perm -0.98'
-emit cfp -use_name -compart "-descri 'cfp' " -piece '-perm -0.98'
-emit cfs -use_name -compart "-descri 'cfs' " -piece '-perm -0.98'
-emit cap -use_name -compart "-descri 'cap' " -piece '-perm -0.98'
-emit capa -use_name -compart "-descri 'capa'  " -piece '-perm -0.98'
-emit casa -use_name -compart "-descri 'casa'  " -piece '-perm -0.98'
-emit cas -use_name -compart "-descri 'cas' " -piece '-perm -0.98'
-emit b11 -use_name -compart "-descri 'b11' " -piece '-perm -0.98'
-emit b22 -use_name -compart "-descri 'b22' " -piece '-perm -0.98'
+emit pft1 -use_name -compart "-descri 'pft1' " -piece '-perm -0.98'
+emit sft2 -use_name -compart "-descri 'sft2' " -piece '-perm -0.98'
+emit pmp2 -use_name -compart "-descri 'pmp2' " -piece '-perm -0.98'
+emit smp3 -use_name -compart "-descri 'smp3' " -piece '-perm -0.98'
+emit pfm1 -use_name -compart "-descri 'pfm1' " -piece '-perm -0.98'
+emit sfm2 -use_name -compart "-descri 'sfm2' " -piece '-perm -0.98'
+emit pam3 -use_name -compart "-descri 'pam3' " -piece '-perm -0.98'
+emit sam5 -use_name -compart "-descri 'sam5' " -piece '-perm -0.98'
+emit pam4 -use_name -compart "-descri 'pam4' " -piece '-perm -0.98'
+emit sam6 -use_name -compart "-descri 'sam6' " -piece '-perm -0.98'
+emit pdb1 -use_name -compart "-descri 'pdb1' " -piece '-perm -0.98'
+emit pdb2 -use_name -compart "-descri 'pdb2' " -piece '-perm -0.98'
+emit pdb3 -use_name -compart "-descri 'pdb4' " -piece '-perm -0.98'
+emit sdb4 -use_name -compart "-descri 'sdb4' " -piece '-perm -0.98'
+emit sdb5 -use_name -compart "-descri 'sdb5' " -piece '-perm -0.98'
+emit sdb6 -use_name -compart "-descri 'sdb6' " -piece '-perm -0.98'
+emit pdb7 -use_name -compart "-descri 'pdb7' " -piece '-perm -0.98'
+emit pdb8 -use_name -compart "-descri 'pdb8' " -piece '-perm -0.98'
+emit sdb9 -use_name -compart "-descri 'sdb9' " -piece '-perm -0.98'
+emit sdb10 -use_name -compart "-descri 'sdb10' " -piece '-perm -0.98'
+emit pd1  -use_name -compart "-descri 'pd1' " -piece '-perm -0.98'
+emit sd2  -use_name -compart "-descri 'sd2' " -piece '-perm -0.98'
+emit pbo  -use_name -compart "-descri 'pbo' " -piece '-perm -0.98'
+emit sbr  -use_name -compart "-descri 'sbr' " -piece '-perm -0.98'
 &finish
