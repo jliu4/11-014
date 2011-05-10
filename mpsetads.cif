@@ -61,74 +61,129 @@ $
 &surface
 $
 $ Defining blocks
+$ moonpool as (x=0 fwd(+),y=0 port(+)
 $
 &set c_len = 7.8 
 &set c_wid = 8.1
 &set c_dep = 28
-&set c_r = 0.8
-$ moonpool as (x=0 fwd(+),y=0 port(+)
-&set f_x = 33.55 $center of fw_col
-&set c_x = 23.85 $24.45
-&set c_y = 33.3   
 
-&set x0 = 1.5
-&set ang = 23
+&set cf_x = 37.75    $x center fw_col
+&set ca_x = 24.45    $x center af_col
+&set ca_y = 33.3     $y center af_col 
 
-&set pp_len = 48.599
-&set pp_wid = 13.8
-&set pa_len = 17.4
-&set pa_wid = 82.8
-&set pa_x = 49.9 
-&set p_y = 32.55
-&set p_dep = 6.0
-&set tunnel = 1.8
-$ column
-block cf -location %f_x% 0 0 0 0 0
-  plane -%c_len%  -rect 0  %c_dep% 2*(%c_wid%-%c_r%)
-  plane -%c_len%+%c_r% %c_len%-%c_r% -rect 0  %c_dep% 2*%c_wid%
-  plane %c_len% -rect 0  %c_dep% 2*(%c_wid%-%c_r%)
+&set x0 = 1.5        $trim tank in x
+&set ang = 23.2      $90-66.8014
+&set cr_r = 1.2      $corner radius 
+
+&set pf_len = 48.599 $fwd pontton len
+&set pf_wid = 13.8   $fwd pontoon wid
+&set pa_len = 21.3   $aft pontoon len
+&set pa_x = 12       $aft pontoon from center of aft col
+&set pa_wid = 82.8   $aft pontoon wid
+&set p_dep = 6.0     $pontoon depth
+&set tunnel = 1.8    $tunnel width
+
+$added
+&set pfc_x = 31.450 $fwd pontoon circle center from moonpool
+&set pfc_r = 19     $fwd pontoon circle raido
+&set af_x = 10.337  $added fwd pontoon x from fwd col
+&set af_y = 10.73   $added fwd pontoon y from center line
+&set aa_x = 3.068   $added aft pontoon x from moonpool
+
+$ fwd column
+block cf -location %cf_x% 0 0 0 0 0
+  plane -%c_len%  -rect 0  %c_dep% 2*(%c_wid%-%cr_r%)
+  plane -%c_len%+%cr_r% %c_len%-%cr_r% -rect 0  %c_dep% 2*%c_wid%
+  plane %c_len% -rect 0  %c_dep% 2*(%c_wid%-%cr_r%)
 end  
 
-$copy port
+$ fwd circle pontoon
+block pc -location %pfc_x% 0 0 0 -90 0
+  plane 0 %p_dep% -circ 0 0 %pfc_r% 0 90/12 12+1
+end
 
-block cp -location -%c_x% %c_y% 0 
-   plane -%c_wid%  -rect 0 %c_dep% 2*(%c_len%-%c_r%)
-   plane -%c_wid%+%c_r% %c_wid%-%c_r% -rect 0  %c_dep% 2*%c_len%
-  plane %c_wid% -rect 0  %c_dep% 2*(%c_len%-%c_r%)
+$ fwd_col + fwd_circle_pontoon=>fw
+union cf pc fw
+&set subt = fw
+suplot fw
+
+$ (3)-(2) anticlockwise 
+$ (4)-(1)
+$ void 1 added pon at fwd
+block pv -location %cf_x%-%c_len% 0 0 0 0 0
+  plane -%af_x% -rect 0 %p_dep% 2*%af_y% 
+  plane 0 -rect 0 %p_dep% 2*(%c_wid-%x0)
+end
+
+$aft col
+block cap -location -%ca_x% %ca_y% 0 
+   plane -%c_wid%  -rect 0 %c_dep% 2*(%c_len%-%cr_r%)
+   plane -%c_wid%+%cr_r% %c_wid%-%cr_r% -rect 0  %c_dep% 2*%c_len%
+  plane %c_wid% -rect 0  %c_dep% 2*(%c_len%-%cr_r%)
 end   
 
-reflect_block cp cs y
+reflect_block cap cas y
 
-union cf cp cfp
-
-union cfp cs cfps
-
-$ pontoon (port)
-block pp  -location -(%c_x%+%x0)+%c_wid% %c_y%  0 0 0 -%ang%
-  plane 0 %pp_len%+%c_len%/2 -rect 0 %p_dep% %pp_wid% 
+$ side pontoon $0.99 is corner's count
+block pf  -location -(%ca_x%+%x0)+%c_wid% %ca_y%  0 0 0 -%ang%
+  plane 0 %pf_len%+%c_len%/2 -rect 0 %p_dep% 0.99*%pf_wid% 
 end
 
-reflect_block pp ps y
-union pp cf tmp $work around
+reflect_block pf sf y
+union pf cf tmp $work around
+union pf sf pps
 
-union pp ps pps
+$added fwd pon + fw=>ff
+union pv fw ff
+$side pon + ff =>pfa
+union pps ff pfa
+$aft col + pfa =cp
+union cap pfa t1
+union cas t1 cp
+&set subt = cp
+suplot cp
 
-
-$&set subt = pps
-$suplot pps
-block pa -location -%c_x%-%c_wid% 0 0
-  plane 0 %pa_len% -rect 0 %p_dep% %pa_wid%
+$aft pontoon
+block pa -location -%ca_x%-%pa_x% 0.5*(%ca_y%+%c_wid%) 0
+  plane 0 %pa_len% -rect 0 %p_dep% %ca_y%+%c_wid%+0.1
 end
 
-union pa cp tmp1
+reflect_block pa sa y
 
-union pps pa ppsa
+union pa cp t2
+union sa cp t3
+$added pontoon at aft
+$void 3
+block pv3 -location -%ca_x%+%c_wid% 18 0
+  plane 0 -rect 0 %p_dep% 9+7.2 
+  plane 18.219 -rect 0 %p_dep% 0.1                    
+end
+$void 4
+reflect_block pv3 sv4 y
+union pa pv3 paa
+reflect paa saa y
+union paa saa t4
+union t4 cp tad 
+&set subt = tad
+suplot tad
 
-
-union cfps ppsa cpall
-
-
-block pft1 -stbd -location %f_x%-5.5 %c_wid% 0
+$compartment
+$ (3)-(2) anticlockwise 
+$ (4)-(1)
+$ void 1 added pon at fwd
+block pv1 -port -location %cf_x%-%c_len% 0 0 0 0 0
+  plane -%af_x% -cart 0.1 0 \
+                      0.1 %p_dep% \
+                      %af_y%  %p_dep% \
+                      %af_y% 0
+  plane 0       -cart 0.1 0 \
+                      0.1 %p_dep% \
+                      %c_wid%-%tunnel% %p_dep% \
+                      %c_wid%-%tunnel% 0
+end
+reflect_block pv1 sv2 y
+$thuster room 1
+block pft1 -stbd -location %cf_x%-5.5 %c_wid% 0
   plane 0 -cart 0 0 \
                 0.1 0 \
                 0.1 6 \
@@ -142,105 +197,85 @@ block pft1 -stbd -location %f_x%-5.5 %c_wid% 0
                 7 6 \
                 0 6
 end
-reflect_block pft1 sft2 y
 
-union pft1 cf tmp2
-union tmp2 pp tmp3
-
-
-union sft2 cf tmp4
-union tmp4 ps tmp5
-
-union pft1 sft2 p1
-
-union cpall p1 tad
-
-&set subt = tad
-suplot tad
-
-delete_block cf cp
-delete_block cfp cs
-delete_block pp ps
-delete_block pps pa
-delete_block tmp tmp1 tmp2 tmp3 tmp4 tmp5
-
-$compartment
-block fttk -location %f_x% 0 0
+$thurster room 2
+reflect_block pft1 stf2
+$trim tank fwd
+block fttk -location %cf_x% 0 0
   plane %c_len%-%x0% %c_len% -rect 0 %p_dep% 2*%c_wid%
 end
-
-block fmp1 -location %f_x% 0 0
+$mud pump room1
+block fmp1 -location %cf_x% 0 0
   plane -%c_len% 0 -rect 0 %p_dep% 2*%c_wid%
 end
-
-block pfm1 -location %f_x% %c_wid%/2 0
+$mud tank 1
+block pfm1 -location %cf_x% %c_wid%/2 0
    plane 0 %c_len% -rect 0 %p_dep% %c_wid%
 end
-
+$mud tank 2
 reflect_block pfm1 sfm2 y
-
-block pam3 -location -%c_x%-%c_wid% %c_y%+%c_len%/2 0
+$mud tank 3
+block pam3 -location -%ca_x%-%c_wid% %ca_y%+%c_len%/2 0
    plane 0 %c_wid% -rect 0 %p_dep% %c_len%
 end
-
+$mud tank 5
 reflect_block pam3 sam5 y
-
-block pam4 -location -%c_x%-%c_wid% %c_y%-%c_len%/2 0
+$mud tank 4
+block pam4 -location -%ca_x%-%c_wid% %ca_y%-%c_len%/2 0
    plane 0 %c_wid% -rect 0 %p_dep% %c_len%
 end
-
+$mud tank 6
 reflect_block pam4 sam6 y
 
-block pmp2 -location -%c_x% %c_y% 0
+$mud pump room 2
+block pmp2 -location -%ca_x% %ca_y% 0
   plane 0 %c_wid% -rect 0 %p_dep% 2*%c_len%
 end
-
+$mud pump room 3
 reflect_block pmp2 smp3 y
-
+$dynamic ballast tank 3
 block pdb3  -location -8.5 31.5 0 0 0 -%ang%
-  plane 0 7.5 -rect 0 %p_dep% %pp_wid%-%tunnel% 
+  plane 0 7.5 -rect 0 %p_dep% %pf_wid%-%tunnel% 
 end
-
+$dynamic ballast tank 6
 reflect_block pdb3 sdb6 y
-
+$dynamic ballast tank 2
 block pdb2 -location -2.131 28.535 0 0 0 -%ang%
-  plane 0 9 -rect 0 %p_dep% %pp_wid%-%tunnel% 
+  plane 0 9 -rect 0 %p_dep% %pf_wid%-%tunnel% 
 end
-
+$dynamic ballast tank 5
 reflect_block pdb2 sdb5 y
-
+$dynamic ballast tank 1
 block pdb1 -location 22.685 17.9 0 0 0 -%ang%
-  plane 0 7.5 -rect 0 %p_dep% %pp_wid%-%tunnel% 
+  plane 0 7.5 -rect 0 %p_dep% %pf_wid%-%tunnel% 
 end
-
+$dynamic ballast tank 4
 reflect_block pdb1 sdb4 y
-
-block pdb7 -location -%c_x%-%c_wid% 9+4.5 0
-  plane 0 %c_wid% -rect 0 %p_dep% 9
+$dynamic ballast tank 7
+block pdb7 -location -%ca_x%-%pa_x% 9+4.5 0
+  plane 0 %pa_x% -rect 0 %p_dep% 9
 end
-
+$dynamic ballast tank 9
 reflect_block pdb7 sdb9 y
-
-block pdb8 -location -%c_x%-%c_wid% 4.5 0
-  plane 0 %c_wid% -rect 0 %p_dep% 9
+$dynamic ballast tank 8
+block pdb8 -location -%ca_x%-%pa_x% 4.5 0
+  plane 0 %pa_x% -rect 0 %p_dep% 9
 end
-
+$dynamic ballst tank 10
 reflect_block pdb8 sdb10 y
 
-
+$drill water 1
 block pd1 -location 6.14 25 0 0 0 -%ang%
-  plane 0 9 -rect 0 %p_dep% %pp_wid%-%tunnel% 
+  plane 0 9 -rect 0 %p_dep% %pa_wid%-%tunnel% 
 end
-
+$drill water 2
 reflect_block pd1 sd2 y
-
+$base oil
 block pbo -location 14.413 21.445 0 0 0 -%ang%
-  plane 0 9 -rect 0 %p_dep% %pp_wid%-%tunnel% 
+  plane 0 9 -rect 0 %p_dep% %pa_wid%-%tunnel% 
 end
-
+$brine
 reflect_block pbo sbr y
-
-
 $
 $ Emitting the meshing
 $
