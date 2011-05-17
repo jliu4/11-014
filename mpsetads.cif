@@ -58,19 +58,20 @@ $$$$$$$$$$$$$$$$$$$$
 $ GENERATE
 $$$$$$$$$$$$$$$$$$$$
 $
-&surface
-$
+
 $ Defining blocks
 $ moonpool as (x=0 fwd(+),y=0 port(+)
 $
-&set c_len = 7.8 
+&set c_len = 8.1
 &set c_wid = 8.1
 &set c_dep = 28
 
 &set cf_x = 37.75    $x center fw_col
 &set ca_x = 24.45    $x center af_col
 &set ca_y = 33.3     $y center af_col 
-
+&set spb = 15        $sponson bottom
+&set spt = 23        $sponson top
+&set spw = 1.5       $sponson wid
 &set x0 = 1.5        $trim tank in x
 &set ang = 23.2      $90-66.8014
 &set cr_r = 1.2      $corner radius 
@@ -90,25 +91,48 @@ $added
 &set af_y = 10.73   $added fwd pontoon y from center line
 &set aa_x = 3.068   $added aft pontoon x from moonpool
 
+&surface
+$
 $ fwd column
 block cf -location %cf_x% 0 0 0 0 0
-  plane -%c_len%  -rect 0  %c_dep% 2*(%c_wid%-%cr_r%)
-  plane -%c_len%+%cr_r% %c_len%-%cr_r% -rect 0  %c_dep% 2*%c_wid%
+  $plane -%c_len%  -rect 0  %c_dep% 2*(%c_wid%-%cr_r%)
+  plane -%c_len% %c_len%-%cr_r% -rect 0  %c_dep% 2*%c_wid%
   plane %c_len% -rect 0  %c_dep% 2*(%c_wid%-%cr_r%)
 end  
 
 $ fwd circle pontoon
 block pc -location %pfc_x% 0 0 0 -90 0
-  plane 0 %p_dep% -circ 0 0 %pfc_r% 0 90/12 12+1
+  plane 0 -circ 0 0 15 0 90/12 12+1
+  plane %p_dep% -circ 0 0 %pfc_r% 0 90/12 12+1
+end
+$ (3)-(2) anticlockwise 
+$ (4)-(1)
+$thuster room 1
+block pft1 -stbd -location %cf_x%-%c_len% %c_wid% 0
+  plane 0 -cart 0 0 \
+                0.1 0 \
+                0.1 6 \
+                0 6
+  plane 5 -cart 0 0 \ 
+                      10.5 0 \
+                    10.5 6 \
+                     0 6
+  plane 2*%c_len% -cart 0 0 \
+                5 0 \
+                5 6 \
+                0 6
 end
 
+$thurster room 2
+reflect_block pft1 sft2 y
+union pc pft1 p1
+union p1 sft2 p2
+
 $ fwd_col + fwd_circle_pontoon=>fw
-union cf pc fw
+union cf p2 fw
 &set subt = fw
 suplot fw
 
-$ (3)-(2) anticlockwise 
-$ (4)-(1)
 $ void 1 added pon at fwd
 block pv -location %cf_x%-%c_len% 0 0 0 0 0
   plane -%af_x% -rect 0 %p_dep% 2*%af_y% 
@@ -116,23 +140,55 @@ block pv -location %cf_x%-%c_len% 0 0 0 0 0
 end
 
 $aft col
-block cap -location -%ca_x% %ca_y% 0 
-   plane -%c_wid%  -rect 0 %c_dep% 2*(%c_len%-%cr_r%)
-   plane -%c_wid%+%cr_r% %c_wid%-%cr_r% -rect 0  %c_dep% 2*%c_len%
-  plane %c_wid% -rect 0  %c_dep% 2*(%c_len%-%cr_r%)
+block cap0 -location -%ca_x% %ca_y% 0 
+   plane -%c_wid% %c_wid% -rect 0 %c_dep% 2*%c_len%
+   $plane -%c_wid%+%cr_r% %c_wid%-%cr_r% -rect 0  %c_dep% 2*%c_len%
+   $plane %c_wid% -rect 0  %c_dep% 2*(%c_len%-%cr_r%)
 end   
+reflect_block cap0 cas0 y
 
-reflect_block cap cas y
+$aft col sponson
+block cap1 -both -location -%ca_x% %ca_y%+%c_len% %spb%
+   plane -%c_wid% %c_wid% -cart 0 -1.5 \
+                                1.5 0 \
+                                1.5 %spt%-%spb% \
+                                 0  %spt%-%spb%+1.5
+end 
+block cap2 -location -%ca_x%-%c_wid%-1.5 %ca_y%+1.5/2 %spb%
+   plane 0 -rect 0 %spt%-%spb% 2*%c_len+1.5 
+   plane 1.5 -rect -1.5 %spt%-%spb%+1.5 2*%c_len+1.5
+end
 
-$ side pontoon $0.99 is corner's count
-block pf  -location -(%ca_x%+%x0)+%c_wid% %ca_y%  0 0 0 -%ang%
-  plane 0 %pf_len%+%c_len%/2 -rect 0 %p_dep% 0.99*%pf_wid% 
+reflect_block cap1 cas1 y
+reflect_block cap2 cas2 y
+
+union cap0 cap1 cap3
+union cas0 cas1 cas3
+union cap2 cap3 cap
+union cas2 cas3 cas
+
+&set subt = cap
+suplot cap
+
+
+$ side pontoon 
+block pf -both -location -(%ca_x%+%x0)+%c_wid% %ca_y%  0 0 0 -%ang%
+  plane 0 %pf_len%+%c_len%*.7 -cart -%pf_wid%/2+%cr_r% 0 \ 
+                                    %pf_wid%/2-%cr_r% 0 \  
+                                    %pf_wid%/2 %cr_r% \
+                                    %pf_wid%/2 %p_dep%-%cr_r% \
+                                    %pf_wid%/2-%cr_r% %p_dep% \
+                                    -%pf_wid%/2+%cr_r% %p_dep% \
+                                    -%pf_wid%/2 %p_dep%-%cr_r% \
+                                    -%pf_wid%/2 %cr_r%
 end
 
 reflect_block pf sf y
+
 union pf cf tmp $work around
 union pf sf pps
-
+&set subt = pps
+suplot pps
 $added fwd pon + fw=>ff
 union pv fw ff
 $side pon + ff =>pfa
@@ -145,13 +201,15 @@ suplot cp
 
 $aft pontoon
 block pa -location -%ca_x%-%pa_x% 0.5*(%ca_y%+%c_wid%) 0
-  plane 0 %pa_len% -rect 0 %p_dep% %ca_y%+%c_wid%+0.1
+  plane 0 -rect 0 %p_dep% %ca_y%+%c_wid%+0.1-%cr_r%
+  plane %cr_r% %pa_len%-%cr_r% -rect 0 %p_dep% %ca_y%+%c_wid%+0.1
+  plane %pa_len -rect 0 %p_dep% %ca_y%+%c_wid%+0.1-%cr_r%
 end
 
 reflect_block pa sa y
 
-union pa cp t2
-union sa cp t3
+union cp pa t2
+union cp sa t3
 $added pontoon at aft
 $void 3
 block pv3 -location -%ca_x%+%c_wid% 18 0
@@ -182,24 +240,7 @@ block pv1 -port -location %cf_x%-%c_len% 0 0 0 0 0
                       %c_wid%-%tunnel% 0
 end
 reflect_block pv1 sv2 y
-$thuster room 1
-block pft1 -stbd -location %cf_x%-5.5 %c_wid% 0
-  plane 0 -cart 0 0 \
-                0.1 0 \
-                0.1 6 \
-                0 6
-  plane 5 -cart 0 0 \ 
-                      11 0 \
-                    11 6 \
-                     0 6
-  plane 12 -cart 0 0 \
-                7 0 \
-                7 6 \
-                0 6
-end
 
-$thurster room 2
-reflect_block pft1 stf2
 $trim tank fwd
 block fttk -location %cf_x% 0 0
   plane %c_len%-%x0% %c_len% -rect 0 %p_dep% 2*%c_wid%
@@ -266,13 +307,13 @@ reflect_block pdb8 sdb10 y
 
 $drill water 1
 block pd1 -location 6.14 25 0 0 0 -%ang%
-  plane 0 9 -rect 0 %p_dep% %pa_wid%-%tunnel% 
+  plane 0 9 -rect 0 %p_dep% %pf_wid%-%tunnel% 
 end
 $drill water 2
 reflect_block pd1 sd2 y
 $base oil
 block pbo -location 14.413 21.445 0 0 0 -%ang%
-  plane 0 9 -rect 0 %p_dep% %pa_wid%-%tunnel% 
+  plane 0 9 -rect 0 %p_dep% %pf_wid%-%tunnel% 
 end
 $brine
 reflect_block pbo sbr y
@@ -282,7 +323,7 @@ $
 
 rename_block @ -panel M -sort xyz -equiv .2 -point *M
 emit @ -body tad
-emit tad -piece ' -diftyp 3ddif -cs_curr 1 1 1 -cs_wind 1 1 1' -use_name YES
+emit tad -piece ' -diftyp 3ddif -cs_curr 1 1 1 ' -use_name YES
 emit fttk -use_name -compart "-descri 'fttk' " -piece '-perm -0.98'
 emit fmp1 -use_name -compart "-descri 'fmp1' " -piece '-perm -0.98'
 
