@@ -62,34 +62,45 @@ $
 $ Defining blocks
 $ moonpool as (x=0 fwd(+),y=0 port(+)
 $
-&set c_len = 8.1
-&set c_wid = 8.1
-&set c_dep = 28
+&set nfp = .true.    $no added widget at fwd
+&set nap = .true.    $no added widget at aft
+&set sw = .false.    $small widget 
+&set c_len = 8.1     $column length
+&set c_wid = 8.1     $column width
+&set c_dep = 29      $column elevate
 
-&set cf_x = 37.75    $x center fw_col
-&set ca_x = 24.45    $x center af_col
+&set cf_x = 37.5     $x center fw_col
+&set ca_x = 24.3     $x center af_col
 &set ca_y = 33.3     $y center af_col 
-&set spb = 15        $sponson bottom
-&set spt = 23        $sponson top
-&set spw = 1.5       $sponson wid
-&set x0 = 1.5        $trim tank in x
-&set ang = 23.2      $90-66.8014
-&set cr_r = 1.2      $corner radius 
+&set spb = 15        $column sponson bottom
+&set spt = 23        $column sponson top
+&set spw = 2.0       $column sponson wid
+&set ang = 23.2      $90-66.8014 
+&set cr_r = 1.2      $pontoon & col corner's radius 
 
-&set pf_len = 48.599 $fwd pontton len
+&set pf_len = 48.6   $side pontton len 3*9+3*7.2
 &set pf_wid = 13.8   $fwd pontoon wid
-&set pa_len = 21.3   $aft pontoon len
-&set pa_x = 12       $aft pontoon from center of aft col
+&set pa_x = 10.2     $aft pontoon x from center of aft col
+&set pa_e = 1.5      $aft pontoon extra stick out
 &set pa_wid = 82.8   $aft pontoon wid
-&set p_dep = 6.0     $pontoon depth
+&set p_dep = 6.6     $pontoon depth
 &set tunnel = 1.8    $tunnel width
 
 $added
-&set pfc_x = 31.450 $fwd pontoon circle center from moonpool
-&set pfc_r = 19     $fwd pontoon circle raido
-&set af_x = 10.337  $added fwd pontoon x from fwd col
-&set af_y = 10.73   $added fwd pontoon y from center line
-&set aa_x = 3.068   $added aft pontoon x from moonpool
+&set pfc_x = 31.450  $fwd pontoon circle center from moonpool
+&set pfc_r = 19      $fwd pontoon circle raido
+&set af_x = 9.637    $added fwd pontoon x from fwd col
+&set af_y = 10.73    $added fwd pontoon y from center line
+&if %sw% &then  
+  &set aa_w = 7.2    $added aft pontoon wid 
+  &set aa_l = 10.891 $added aft pontoon length
+  &set aa_y = 21.6   $added aft pontoon y from moonpool 18+3.6
+&else
+  &set aa_w = 16.2   $7.2+9
+  &set aa_l = 18.219
+  &set aa_y = 17.1   $9+16.2/2
+&endif
+
 
 &surface
 $
@@ -136,27 +147,27 @@ suplot fw
 $ void 1 added pon at fwd
 block pv -location %cf_x%-%c_len% 0 0 0 0 0
   plane -%af_x% -rect 0 %p_dep% 2*%af_y% 
-  plane 0 -rect 0 %p_dep% 2*(%c_wid-%x0)
+  plane 0 -rect 0 %p_dep% 2*(%c_wid-%pa_e%)
 end
 
 $aft col
 block cap0 -location -%ca_x% %ca_y% 0 
-   plane -%c_wid% %c_wid% -rect 0 %c_dep% 2*%c_len%
-   $plane -%c_wid%+%cr_r% %c_wid%-%cr_r% -rect 0  %c_dep% 2*%c_len%
-   $plane %c_wid% -rect 0  %c_dep% 2*(%c_len%-%cr_r%)
+   plane -%c_wid% -rect 0 %c_dep% 2*(%c_len%-%cr_r%)
+   plane -%c_wid%+%cr_r% %c_wid%-%cr_r% -rect 0  %c_dep% 2*%c_len%
+   plane %c_wid% -rect 0  %c_dep% 2*(%c_len%-%cr_r%)
 end   
 reflect_block cap0 cas0 y
 
 $aft col sponson
 block cap1 -both -location -%ca_x% %ca_y%+%c_len% %spb%
-   plane -%c_wid% %c_wid% -cart 0 -1.5 \
-                                1.5 0 \
-                                1.5 %spt%-%spb% \
-                                 0  %spt%-%spb%+1.5
+   plane -%c_wid% %c_wid% -cart 0 -%spw \
+                                %spw 0 \
+                                %spw %spt%-%spb% \
+                                 0  %spt%-%spb%+%spw
 end 
-block cap2 -location -%ca_x%-%c_wid%-1.5 %ca_y%+1.5/2 %spb%
-   plane 0 -rect 0 %spt%-%spb% 2*%c_len+1.5 
-   plane 1.5 -rect -1.5 %spt%-%spb%+1.5 2*%c_len+1.5
+block cap2 -location -%ca_x%-%c_wid%-%spw %ca_y%+%spw/2 %spb%
+   plane 0 -rect 0 %spt%-%spb% 2*%c_len+%spw 
+   plane %spw -rect -%spw %spt%-%spb%+%spw 2*%c_len+%spw
 end
 
 reflect_block cap1 cas1 y
@@ -172,7 +183,7 @@ suplot cap
 
 
 $ side pontoon 
-block pf -both -location -(%ca_x%+%x0)+%c_wid% %ca_y%  0 0 0 -%ang%
+block pf -both -location -(%ca_x%+%pa_e)+%c_wid% %ca_y%  0 0 0 -%ang%
   plane 0 %pf_len%+%c_len%*.7 -cart -%pf_wid%/2+%cr_r% 0 \ 
                                     %pf_wid%/2-%cr_r% 0 \  
                                     %pf_wid%/2 %cr_r% \
@@ -190,9 +201,13 @@ union pf sf pps
 &set subt = pps
 suplot pps
 $added fwd pon + fw=>ff
-union pv fw ff
-$side pon + ff =>pfa
-union pps ff pfa
+&if %nfp% &then
+ union pps fw pfa
+&else 
+ union pv fw ff
+ $side pon + ff =>pfa
+ union pps ff pfa
+&endif 
 $aft col + pfa =cp
 union cap pfa t1
 union cas t1 cp
@@ -202,26 +217,31 @@ suplot cp
 $aft pontoon
 block pa -location -%ca_x%-%pa_x% 0.5*(%ca_y%+%c_wid%) 0
   plane 0 -rect 0 %p_dep% %ca_y%+%c_wid%+0.1-%cr_r%
-  plane %cr_r% %pa_len%-%cr_r% -rect 0 %p_dep% %ca_y%+%c_wid%+0.1
-  plane %pa_len -rect 0 %p_dep% %ca_y%+%c_wid%+0.1-%cr_r%
+  plane %cr_r% %pa_x%+%c_wid%+%pa_e%-%cr_r% -rect 0 %p_dep% %ca_y%+%c_wid%+0.1
+  plane %pa_x%+%c_wid%+%pa_e% -rect 0 %p_dep% %ca_y%+%c_wid%+0.1-%cr_r%
 end
 
 reflect_block pa sa y
 
-union cp pa t2
+$union cp pa t2
 union cp sa t3
 $added pontoon at aft
 $void 3
-block pv3 -location -%ca_x%+%c_wid% 18 0
-  plane 0 -rect 0 %p_dep% 9+7.2 
-  plane 18.219 -rect 0 %p_dep% 0.1                    
+block pv3 -location -%ca_x%+%c_wid%+1.2 %aa_y 0
+  plane 0 -rect 0 %p_dep% %aa_w 
+  plane %aa_l% -rect 0 %p_dep% 0.1                    
 end
 $void 4
 reflect_block pv3 sv4 y
-union pa pv3 paa
-reflect paa saa y
-union paa saa t4
-union t4 cp tad 
+&if %nap% &then
+  reflect pa saa y
+  union pa saa t4
+&else  
+ union pa pv3 paa
+ reflect paa saa y
+ union paa saa t4
+&endif 
+union cp t4 tad 
 &set subt = tad
 suplot tad
 
@@ -243,7 +263,7 @@ reflect_block pv1 sv2 y
 
 $trim tank fwd
 block fttk -location %cf_x% 0 0
-  plane %c_len%-%x0% %c_len% -rect 0 %p_dep% 2*%c_wid%
+  plane %c_len%-%pa_e% %c_len% -rect 0 %p_dep% 2*%c_wid%
 end
 $mud pump room1
 block fmp1 -location %cf_x% 0 0
@@ -323,7 +343,7 @@ $
 
 rename_block @ -panel M -sort xyz -equiv .2 -point *M
 emit @ -body tad
-emit tad -piece ' -diftyp 3ddif -cs_curr 1 1 1 ' -use_name YES
+emit tad -piece ' -diftyp 3ddif -cs_curr 1 1 1 -cs_wind 0 0 0' -use_name YES
 emit fttk -use_name -compart "-descri 'fttk' " -piece '-perm -0.98'
 emit fmp1 -use_name -compart "-descri 'fmp1' " -piece '-perm -0.98'
 
