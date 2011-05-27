@@ -1,0 +1,36 @@
+$******************* use macro
+use_mac stab
+$-------------------- read geometry
+&insert ./mpsetads.ans/mod00001.txt
+&parameter -spgwater 1.0257 $ratio of default water density (64.026/62.42(fresh water)
+$wind area
+
+&if .false. &then
+$port crane
+&describe body tad
+pgen port_crane -cs_wind 1 1 1 -cs_curr 1 1 1 -loc -7.8+2.825 26.53 35.6
+ plane 0 10.341 -cart 0 0 \
+ 		      0 7.4 \
+ 		      37.3 7.4 \
+ 		      37.3 7.4+2.9 \
+ 		      10.77 7.4+2.9
+end
+
+&endif
+ 		      
+
+$
+$********************* down flooding pts
+$
+&set col_height = 28
+*nfp   7.8 -8.1 %col_height%
+*nfs   7.8  8.1 %col_height%
+*nap 50.2  -25.2 %col_height%
+*nas 50.2  25.2 %col_height% 
+*fp   7.8 -8.1 %col_height%
+*fs   7.8  8.1 %col_height%
+*ap 50.2  -25.2 %col_height%
+*as 50.2  25.2 %col_height% 
+&describe compartment tad -nwt_down *nfp *nfs *nap *nas
+&describe compartment tad -wt_down *fp *fs *ap *as
+&describe interest -associate *fp *fs *ap *as

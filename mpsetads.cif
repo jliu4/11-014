@@ -1,0 +1,327 @@
+$
+&dimen -save -dimen meter tons
+&device  -mecho n -g_default screen
+&device -primary file -oecho n
+&channel gra_dev -p_device PNG
+&title Self Elevating Platform
+&parameter -m_dis 4
+$
+$*********************************************      control parameters
+$
+$
+$
+&set demo   = .false.
+$
+$$$$$$$$$$$$$$$$$$$$
+$ MACROS
+$$$$$$$$$$$$$$$$$$$$
+$
+   &MACRO SUPLOT NAMES
+    &SELEC :N -SEL %NAMES
+    &IF %DEMO &THEN
+     &DEVICE -g_default SCREEN
+     &SUBTITLE %SUBT PICTURE ISO
+     &PICT ISO -parent :N
+     &LOCAL DUM = &GET(YES/NO )
+     &IF &STRING(MATCH %DUM% YES) &THEN
+     &ENDIF
+     &SUBTITLE %SUBT PICTURE TOP
+     &PICT TOP
+     &LOCAL DUM = &GET(YES/NO )
+     &IF &STRING(MATCH %DUM% YES) &THEN
+     &ENDIF
+     &SUBTITLE %SUBT PICTURE BOW
+     &PICT BOW
+     &LOCAL DUM = &GET(YES/NO )
+     &IF &STRING(MATCH %DUM% YES) &THEN
+     &ENDIF
+     &SUBTITLE %SUBT PICTURE STARB
+     &PICT STARB
+     &LOCAL DUM = &GET(YES/NO )
+     &IF &STRING(MATCH %DUM% YES) &THEN
+     &ENDIF
+    &ELSE
+     &DEVICE -g_default DEVICE
+     &SUBTITLE %SUBT PICTURE ISO
+     &PICT ISO -parent :N
+     &SUBTITLE %SUBT PICTURE TOP
+     &PICT TOP
+     &SUBTITLE %SUBT PICTURE BOW
+     &PICT BOW
+     &SUBTITLE %SUBT PICTURE STARB
+     &PICT STARB
+    &ENDIF
+   &ENDMACRO
+$
+$
+$$$$$$$$$$$$$$$$$$$$
+$ GENERATE
+$$$$$$$$$$$$$$$$$$$$
+$
+&surface
+$
+$ Defining blocks
+$
+&set col_len = 7.8               
+&set col_wid = 8.1
+&set col_height = 28
+&set col_radio = 0.8
+&set x0 = 58
+&set y0 = 33.3
+&set x1 = 58-7.8-9.6
+&set x1 = 40.6
+&set y1 = 33.3-7.8-8.1-7.8
+&set y1 = 17.4
+&set corner_r = 1.5
+&set atany1_x1 = 23.5
+
+&set tany1_x1 = 0.4348
+&set cosy1_x1 = 0.91706
+&set b1_len = 44.1
+
+&set b1_wid = 13.8
+&set b_height = 6.0
+
+&set b2 = 12+8.1
+
+$ column
+block c1 -location -%col_len% 0 0 0 0 0
+  plane 0  -rect 0  %col_height% 2*(%col_wid%-%corner_r%)
+  plane %corner_r% 2*%col_len%-%corner_r% -rect 0  %col_height% 2*%col_wid%
+  plane 2*%col_len% -rect 0  %col_height% 2*(%col_wid%-%corner_r%)
+end  
+
+move_block c1 c2 %x0% -%y0% 0 0 0 90
+&set subt = c2
+$suplot c2
+move_block c1 c3 %x0% %y0% 0 0 0 -90
+&set subt = c3
+$suplot c3
+$ pontoon
+
+block b1 -port -location %col_len% -%col_wid%  0 0 0 -%atany1_x1%
+  plane 0 52 -cart 0 0 \
+                          13.8 0 \
+                          13.8 6 \
+                          0 6
+end
+
+reflect_block b1 b2 y
+
+block b3 -location 50.2 0 0
+  plane 0 -rect 0 %b_height% 79.2-3
+  plane 1.5 13.8+6.3-1.5 -rect 0 %b_height% 79.2
+  plane 13.8+6.3 -rect 0 %b_height% 79.2-3
+end
+
+block b11 -port -location -6.9 -7.9 0
+  plane 0 -cart 0 0 \
+             8.3 0 \
+             8.3 6 \
+              0 6
+  plane 9.2 -cart 0 0 \
+                13 0 \
+                13 6 \
+                0 6
+  plane  15 -cart 0 0 \
+                 0 6 
+end
+
+
+reflect_block b11 b22 y
+
+&set subt = b11
+suplot b11
+&set subt = b22
+suplot b22
+
+union b1 b11 b10
+&set subt = b10
+$suplot b10
+
+union c1 b10 cb1
+&set subt = cb1
+$suplot cb1
+
+delete_block c1 b1 b10
+
+union b2 b22 b20
+
+union cb1 b20 cb12
+
+delete_block cb1 b2 b20
+
+&set subt = cb12
+$suplot cb12
+
+union cb12 c2 cb122
+
+delete_block cb12 c2
+
+union cb122 c3 cb123
+
+delete_block cb122 c3
+
+&set subt = cb123
+
+$suplot cb123
+
+union cb123 b3 bot
+
+$deck
+
+&set deck_height = 7.6
+
+block ct1 -location -%col_len% 0 %col_height%-0.1 0 0 0 
+  plane 0  -rect 0  %deck_height%+0.1 2*(%col_wid%-%corner_r%)
+  plane %corner_r% 2*%col_len%-%corner_r% -rect 0  %deck_height%+0.1 2*%col_wid%
+  plane 2*%col_len% -rect 0  %deck_height%+0.1 2*(%col_wid%-%corner_r%)
+end
+
+move_block ct1 ct2 %x0% -%y0% 0 0 0 90
+
+move_block ct1 ct3 %x0% %y0% 0 0 0 -90
+
+block bt1 -port -location %col_len% -%col_wid%  %col_height%-0.1 0 0 -%atany1_x1%
+  plane -0.1 0.1 52+0.1 -cart 0 0 \
+                          13.8 0 \
+                          13.8 %deck_height% \
+                          0 %deck_height%
+end
+
+reflect_block bt1 bt2 y
+
+block bt3 -location 50.2 0 %col_height%-0.1
+  plane -0.1 0  0.1 -rect 0 %deck_height%+0.2 79.2-3
+  plane 1.5 13.8+6.3-1.5 -rect 0 %deck_height%+0.2 79.2
+  plane 13.8+6.3 13.8+6.3+0.1 -rect 0 %deck_height%+0.2 79.2-3
+end
+
+&set subt = bt3
+
+suplot bt3
+
+block bt11 -PORT -location -6.9 -7.9 %col_height%-0.1
+  plane -0.1 0.1 -cart 0 0 \
+             8.3 0 \
+             8.3 %deck_height% \
+              0 %deck_height%
+  plane 9.2 -cart 0 0 \
+                13 0 \
+                13 %deck_height% \
+                0 %deck_height%
+  plane  15 -cart 0 0 \
+                 0 %deck_height% 
+end
+
+reflect_block bt11 bt22 y
+
+union bt1 bt11 bt10
+&set subt = bt10
+$suplot bt10
+
+union ct1 bt10 cbt1
+&set subt = cbt1
+$suplot cbt1
+
+delete_block ct1 bt1 bt11 bt10
+
+union bt2 bt22 bt20
+
+union cbt1 bt20 cbt12
+
+delete_block cbt1 bt2 bt22 bt20
+
+&set subt = cbt12
+suplot cbt12
+
+union cbt12 ct2 cbt122
+
+&set subt = cbt122
+suplot cbt122
+delete_block cbt12 ct2
+
+$$$$
+union cbt122 ct3 cbt123
+&set subt = cbt123
+suplot cbt123
+delete_block cbt122 ct3
+
+&set subt = cbt123
+
+suplot cbt123
+
+union cbt123 bt3 deck
+
+&set subt = deck
+
+suplot deck
+union bot deck tad
+
+&set subt = tad
+
+suplot tad
+$compartment
+
+block cf -location -7.8 0 15
+  plane 0 1.5 -rect 0 8 2*%col_wid%-3
+end
+
+move_block cf cap %x0% -%y0% 0 0 0 90
+
+move_block cf cas %x0% %y0% 0 0 0 -90
+
+block cfp -port -location -7.8 -6.6 15
+  plane 0 15.6 -rect 0 8 3
+end
+
+reflect_block cfp cfs y
+
+move_block cfp capa %x0% -%y0% 0 0 0 90
+move_block cfp casa %x0% %y0% 0 0 0 -270
+
+block cp -location -7.8 0 15
+  plane 0 1.5 -rect 0 8 2*%col_wid%-3
+end
+
+block pa1 -port -location 32.9 -23.3 0
+   plane 0 -cart 0 0 \
+                 11 0 \
+                 11 6 \
+                 0 6
+                 
+   plane 4.5 -cart 1.5 0 \
+                 12.5 0 \
+                 12.5 6 \
+                 0 6
+                 
+   plane 9.2 -cart 3 0 \
+   		  14.5 0 \
+   		  14.5 6 \
+   		  0 6
+end   		  
+
+reflect_block pa1 sa1 y
+   
+&set subt = tad
+suplot tad
+$
+$ Emitting the meshing
+$
+
+rename_block @ -panel M -sort xyz -equiv .2 -point *M
+emit @ -body tad
+emit tad -piece ' -diftyp 3ddif -cs_curr 1 1 1 -cs_wind 1 1 1' -use_name YES
+
+emit pa1 -use_name -compart "-descri 'pa1' " -piece '-perm -0.98'
+emit sa1 -use_name -compart "-descri 'sa1' " -piece '-perm -0.98'
+emit cf  -use_name -compart "-descri 'cf'  " -piece '-perm -0.98'
+emit cfp -use_name -compart "-descri 'cfp' " -piece '-perm -0.98'
+emit cfs -use_name -compart "-descri 'cfs' " -piece '-perm -0.98'
+emit cap -use_name -compart "-descri 'cap' " -piece '-perm -0.98'
+emit capa -use_name -compart "-descri 'capa'  " -piece '-perm -0.98'
+emit casa -use_name -compart "-descri 'casa'  " -piece '-perm -0.98'
+emit cas -use_name -compart "-descri 'cas' " -piece '-perm -0.98'
+emit b11 -use_name -compart "-descri 'b11' " -piece '-perm -0.98'
+emit b22 -use_name -compart "-descri 'b22' " -piece '-perm -0.98'
+&finish
