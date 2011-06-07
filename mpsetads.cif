@@ -63,9 +63,10 @@ $ Defining blocks
 $ moonpool as (x=0 fwd(+),y=0 port(+)
 $
 &set aftc = .true.   $aft pontoon with half circle
-&set fac = .true.    $far aft pontoon with half circle
-&set ns = .true.     $no sponson
-&set spc = .true.    $semi circle at outside of side pontoon
+&set fac = .false.    $far aft pontoon with half circle
+&set ns = .true.    $no sponson
+&set spco = .true.   $semi circle at outside of side pontoon
+&set spci = .false.  $semi circle at inside of side pontoon  
 $change col from 16.2*16.2 to 18*15 and move aft columns outside 0.6
 &set c_len = 9     $8.7 $8.1     $column length
 &set c_wid = 7.5   $7.5 $8.1     $column width
@@ -78,7 +79,7 @@ $change col from 16.2*16.2 to 18*15 and move aft columns outside 0.6
 &set spt = 23        $column sponson top
 &set spw = 1.5       $2.0       $column sponson wid
 &set ang = 23.2      $90-66.8014 
-&set cr_r = 1.2      $pontoon & col corner's radius 
+&set cr_r = 1.8      $pontoon & col corner's radius 
 
 &set pf_len = 48.6   $side pontton len 3*9+3*7.2
 &set pf_wid = 13.8   $fwd pontoon wid
@@ -171,20 +172,35 @@ union cas2 cas3 cas
 suplot cap
 
 $ side pontoon 
-&if %spc &then
-  block pf1 -location -(%ca_x%+%pa_e%)+0.8*%c_len% %ca_y%+0.15*%c_wid+%pf_wid/2-0.5*%p_dep 0.5*%p_dep 0 0 -%ang%
+&if %spco .or. %spci &then
+  block pf1 -location -(%ca_x%+%pa_e%)+0.76*%c_len% %ca_y%+0.15*%c_wid+%pf_wid/2-0.5*%p_dep 0.5*%p_dep 0 0 -%ang%
           plane 0 %pf_len%+%c_len%*2 -circ 0 0 0.5*%p_dep% 0 180/12 12+1
   end
   &set subt = pf1
   suplot pf1
-      block pf2 -both -location -(%ca_x%+%pa_e)+0.6*%c_len% %ca_y%+0.2*%c_wid  0 0 0 -%ang%
-          plane 0 %pf_len%+%c_len%*2 -cart -%pf_wid%/2+%cr_r 0 \ 
+  
+  &if %spci &then
+    block pf21 -both -location -(%ca_x%+%pa_e)+0.6*%c_len% %ca_y%+0.2*%c_wid  0 0 0 -%ang%
+          plane 0 %pf_len%+%c_len%*2 -cart -%pf_wid%/2+0.5*%p_dep 0 \ 
 	                                      %pf_wid%/2-0.5*%p_dep 0 \
 	                                      %pf_wid%/2-0.5*%p_dep %p_dep% \
-                                             -%pf_wid%/2+%cr_r% %p_dep% \
-                                             -%pf_wid%/2 %p_dep%-%cr_r% \
-                                             -%pf_wid%/2 %cr_r%
-  end
+                                             -%pf_wid%/2+0.5*%p_dep %p_dep%
+                                            
+    end
+    block pf22 -location -(%ca_x%+%pa_e%)+0.44*%c_len% %ca_y%+0.22*%c_wid-%pf_wid/2+0.5*%p_dep 0.5*%p_dep 0 0 -%ang%
+            plane 0 %pf_len%+%c_len%*2 -circ 0 0 0.5*%p_dep% 0 180/12 12+1
+    end
+    union pf21 pf22 pf2
+  &else 
+    block pf2 -both -location -(%ca_x%+%pa_e)+0.6*%c_len% %ca_y%+0.2*%c_wid  0 0 0 -%ang%
+              plane 0 %pf_len%+%c_len%*2 -cart -%pf_wid%/2+%cr_r 0 \ 
+    	                                      %pf_wid%/2-0.5*%p_dep 0 \
+    	                                      %pf_wid%/2-0.5*%p_dep %p_dep% \
+                                                 -%pf_wid%/2+%cr_r% %p_dep% \
+                                                 -%pf_wid%/2 %p_dep%-%cr_r% \
+                                                 -%pf_wid%/2 %cr_r%
+    end
+  &endif  
   union pf1 pf2 pf
   &set subt = pf
   suplot pf
