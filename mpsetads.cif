@@ -62,11 +62,7 @@ $
 $ Defining blocks
 $ moonpool as (x=0 fwd(+),y=0 port(+)
 $
-&set aftc = .true.   $aft pontoon with half circle
-&set fac = .false.    $far aft pontoon with half circle
-&set ns = .true.    $no sponson
-&set spco = .true.   $semi circle at outside of side pontoon
-&set spci = .false.  $semi circle at inside of side pontoon  
+
 $change col from 16.2*16.2 to 18*15 and move aft columns outside 0.6
 &set c_len = 9     $8.7 $8.1     $column length
 &set c_wid = 7.5   $7.5 $8.1     $column width
@@ -75,9 +71,7 @@ $change col from 16.2*16.2 to 18*15 and move aft columns outside 0.6
 &set c_dep = 29      $column elevate
 &set cf_x = 39.3     $x center fw_col
 &set ca_x = 23.4     $22.5     $x center af_col
-&set spb = 15        $column sponson bottom
-&set spt = 23        $column sponson top
-&set spw = 1.5       $2.0       $column sponson wid
+
 &set ang = 23.2      $90-66.8014 
 &set cr_r = 1.8      $pontoon & col corner's radius 
 
@@ -94,181 +88,98 @@ $added
 &set pfc_r = 19      $fwd pontoon circle radius
 
 &surface
-$
-$ fwd column it is 90 degree rotation wrt aft columns, so len and wid switched
-block cf -location %cf_x% 0 0 0 0 0 
-  plane -%c_wid%  -rect 0  %c_dep% 2*(%c_len%-%cr_r%)
-  plane -%c_wid%+%cr_r% %c_wid%-%cr_r% -rect 0  %c_dep% 2*%c_len%
-  plane %c_wid% -rect 0 %c_dep% 2*(%c_len%-%cr_r%)
-end  
+$fwd col
+block cf -both -loc  %cf_x 0 0 0 -90 0
+  plane 0 %p_dep -cart %c_len -%c_wid \
+                      %c_len %c_wid \
+                      -%c_len %c_wid \
+                      -%c_len -%c_wid
+  plane %p_dep+1.8 %c_dep -cart %c_len-%cr_r -%c_wid \
+                                %c_len-0.3*%cr_r -%c_wid+0.3*%cr_r \
+                                %c_len -%c_wid+%cr_r \
+                                %c_len %c_wid-%cr_r \
+				%c_len-0.3*%cr_r %c_wid-0.3*%cr_r \
+                                %c_len-%cr_r %c_wid \
+                                -%c_len+%cr_r %c_wid \
+		                -%c_len+0.3*%cr_r +%c_wid-0.3*%cr_r \
+                                -%c_len %c_wid-%cr_r \
+                                -%c_len -%c_wid+%cr_r \
+				-%c_len+0.3*%cr_r -%c_wid+0.3*%cr_r \
+                                -%c_len+%cr_r -%c_wid
+endif                                
+$&set subt = cf
+$suplot cf
 
 $ fwd circle pontoon
 block pc -location %pfc_x% 0 0 0 -90 0
   plane 0 -circ 0 0 %pfc_r%-3 0 90/12 12+1      $ the circle has small radius at the bottom of the pontoon
-  plane %p_dep% -circ 0 0 %pfc_r% 0 90/12 12+1
+  plane %p_dep%-1.8 -circ 0 0 %pfc_r% 0 90/12 12+1
+  plane %p_dep% -circ 0 0 %pfc_r%-1.8 0 90/12 12+1
 end
-$ (3)-(2) anticlockwise 
-$ (4)-(1)
-$thruster room 1
-block pft1 -stbd -location %cf_x%-%c_wid% %c_len% 0
-  plane 0 -cart 0 0 \
-                0.1 0 \
-                0.1 %p_dep% \
-                0 %p_dep
-  plane %c_wid -cart 0 0 \ 
-                      %c_len+3 0 \
-                      %c_len+3 %p_dep \
-                      0 %p_dep
-  plane 2*%c_wid% -cart 0 0 \
-                %c_len-3 0 \
-                %c_len-3 %p_dep \
-                0 %p_dep
-end
-
-$thurster room 2
-reflect_block pft1 sft2 y
-union pc pft1 p1  $circle + thruster room1
-union p1 sft2 p2  $circle + thruster room2
 
 $ fwd_col + fwd_circle_pontoon=>fw
 $ take out thruster room
 union cf pc fw  $circle + thruster room + fwd col
-&set subt = fw
-suplot fw
+$&set subt = fw
+$suplot fw
 
-$aft col
-block cap0 -location -%ca_x% %ca_y% 0 
-   plane -%c_len% -rect 0 %c_dep% 2*(%c_wid%-%cr_r%)
-   plane -%c_len%+%cr_r% %c_len%-%cr_r% -rect 0  %c_dep% 2*%c_wid%
-   plane %c_len% -rect 0 %c_dep% 2*(%c_wid%-%cr_r%)
-end   
-reflect_block cap0 cas0 y
+move_block cf cap -%ca_x (%ca_y*2+5) 0 0 0 -90
 
-$aft col sponson on far side
-block cap1 -both -location -%ca_x% %ca_y%+%c_wid% %spb%
-   plane -%c_len%-%spw %c_len% -cart 0 -%spw \
-                                %spw 0 \
-                                %spw %spt%-%spb% \
-                                 0  %spt%-%spb%+%spw
-end 
-$aft col sponson on the far aft
-block cap2 -location -%ca_x%-%c_len%-%spw %ca_y% %spb%
-   plane 0 -rect 0 %spt%-%spb% 2*%c_wid
-   plane %spw+0.1 -rect -%spw %spt%-%spb%+%spw 2*%c_wid
-end
-&set subt = cap1
-suplot cap1
+reflect_block cap cas y
 
-reflect_block cap1 cas1 y
-reflect_block cap2 cas2 y
-
-union cap0 cap1 cap3
-union cas0 cas1 cas3
-union cap2 cap3 cap
-union cas3 cas2 tmp $work around
-union cas2 cas3 cas
-
-&set subt = cap
-suplot cap
+$&set subt = cap
+$suplot cap
 
 $ side pontoon 
-&if %spco .or. %spci &then
-  block pf1 -location -(%ca_x%+%pa_e%)+0.76*%c_len% %ca_y%+0.15*%c_wid+%pf_wid/2-0.5*%p_dep 0.5*%p_dep 0 0 -%ang%
-          plane 0 %pf_len%+%c_len%*2 -circ 0 0 0.5*%p_dep% 0 180/12 12+1
-  end
-  &set subt = pf1
-  suplot pf1
-  
-  &if %spci &then
-    block pf21 -both -location -(%ca_x%+%pa_e)+0.6*%c_len% %ca_y%+0.2*%c_wid  0 0 0 -%ang%
-          plane 0 %pf_len%+%c_len%*2 -cart -%pf_wid%/2+0.5*%p_dep 0 \ 
-	                                      %pf_wid%/2-0.5*%p_dep 0 \
-	                                      %pf_wid%/2-0.5*%p_dep %p_dep% \
-                                             -%pf_wid%/2+0.5*%p_dep %p_dep%
-                                            
-    end
-    block pf22 -location -(%ca_x%+%pa_e%)+0.44*%c_len% %ca_y%+0.22*%c_wid-%pf_wid/2+0.5*%p_dep 0.5*%p_dep 0 0 -%ang%
-            plane 0 %pf_len%+%c_len%*2 -circ 0 0 0.5*%p_dep% 0 180/12 12+1
-    end
-    union pf21 pf22 pf2
-  &else 
-    block pf2 -both -location -(%ca_x%+%pa_e)+0.6*%c_len% %ca_y%+0.2*%c_wid  0 0 0 -%ang%
+$outside semi-circle
+block pf1 -location -(%ca_x%+%pa_e%)+0.76*%c_len% %ca_y%+0.15*%c_wid+%pf_wid/2-0.5*%p_dep 0.5*%p_dep 0 0 -%ang%
+      plane 0 %pf_len%+%c_len%*2 -circ 0 0 0.5*%p_dep% 0 180/12 12+1
+end
+
+$1.8 corner inside pontoon
+block pf2 -both -location -(%ca_x%+%pa_e)+0.6*%c_len% %ca_y%+0.2*%c_wid  0 0 0 -%ang%
               plane 0 %pf_len%+%c_len%*2 -cart -%pf_wid%/2+%cr_r 0 \ 
     	                                      %pf_wid%/2-0.5*%p_dep 0 \
     	                                      %pf_wid%/2-0.5*%p_dep %p_dep% \
-                                                 -%pf_wid%/2+%cr_r% %p_dep% \
-                                                 -%pf_wid%/2 %p_dep%-%cr_r% \
-                                                 -%pf_wid%/2 %cr_r%
-    end
-  &endif  
-  union pf1 pf2 pf
-  &set subt = pf
-  suplot pf
-&else
-
-  block pf -both -location -(%ca_x%+%pa_e)+0.6*%c_len% %ca_y%+0.2*%c_wid  0 0 0 -%ang%
-    plane 0 %pf_len%+%c_len%*2 -cart -%pf_wid%/2+%cr_r% 0 \ 
-                                        %pf_wid%/2-%cr_r% 0 \  
-                                        %pf_wid%/2 %cr_r% \
-                                        %pf_wid%/2 %p_dep%-%cr_r% \
-                                        %pf_wid%/2-%cr_r% %p_dep% \
-                                       -%pf_wid%/2+%cr_r% %p_dep% \
-                                       -%pf_wid%/2 %p_dep%-%cr_r% \
-                                       -%pf_wid%/2 %cr_r%
-  end
-  
-&endif
+                                                 -0.5*%pf_wid%+%cr_r% %p_dep% \
+                                                 -0.5*%pf_wid%+0.3*%cr_r %p_dep%-0.3*%cr_r% \
+                                                 -0.5*%pf_wid% %p_dep%-%cr_r% \
+                                                 -0.5*%pf_wid% %cr_r% \
+                                                 -0.5*%pf_wid%+0.3*%cr_r% 0.3*%cr_r%
+                                                 
+end
+ 
+union pf1 pf2 pf
+ 
 reflect_block pf sf y
 
 union pf cf tmp1 $work around
 union pf sf pps  $two sides of pontoon
-&set subt = pps
-suplot pps
+$&set subt = pps
+$suplot pps
 
 $side pon + fw =>pfa
 union pps fw pfa $side pontoon + fw 
 $aft col + pfa =cp
-&if %ns &then
-  union cap0 pfa t1
-  union cas0 t1 cp
-&else  
-  union cap pfa t1 $port col+side pontoon
-  union cas t1 cp  $stbd col+side pontoon
-&endif  
-&set subt = cp
-suplot cp
+union cap pfa t1
+union cas t1 cp
+
 $aft pontoon
-&if %aftc% &then
-  &if %fac% &then $far aft semi-circle
-    block pa11 -location -%ca_x%-%pa_x%+0.5*%p_dep% 0 0.5*%p_dep% 0 0 90
-        plane -0.01 %ca_y%+%c_wid% -circ 0 0 0.5*%p_dep% 0 180/12 12+1
-    end
-    block pa12 -location -%ca_x%-%pa_x%+0.5*%p_dep% 0.5*(%ca_y%+%c_wid%) 0
-          plane 0 %pa_x%+%c_len%+%pa_e%-%p_dep% -rect 0 %p_dep% %ca_y%+%c_wid%+0.01
-    end
-    union pa11 pa12 pa1
-    &set subt = pa1
-    suplot pa1
-  &else   
-    block pa1 -location -%ca_x%-%pa_x% 0.5*(%ca_y%+%c_wid%) 0
-      plane 0 -rect 0 %p_dep% %ca_y%+%c_wid%+0.1-%cr_r%
-      plane %cr_r% %pa_x%+%c_len%+%pa_e%-0.5*%p_dep% -rect 0 %p_dep% %ca_y%+%c_wid%+0.1
-    end
-  &endif  
-  $aft fwd circle
-  block pa2 -location -%ca_x%+(%c_len%+%pa_e%)-(0.5*%p_dep%) 0 0.5*%p_dep% 0 0 90
-    plane -0.01 %ca_y%-%c_wid% -circ 0 0 0.5*%p_dep% 0 180/12 12+1
-  end  
-  union pa1 pa2 pa
-&else  
-  block pa -location -%ca_x%-%pa_x% 0.5*(%ca_y%+%c_wid%) 0
-    plane 0 -rect 0 %p_dep% %ca_y%+%c_wid%+0.1-%cr_r%
-    plane %cr_r% %pa_x%+%c_len%+%pa_e%-%cr_r% -rect 0 %p_dep% %ca_y%+%c_wid%+0.1
-    plane %pa_x%+%c_len%+%pa_e% -rect 0 %p_dep% %ca_y%+%c_wid%+0.1-%cr_r%
-  end
-&endif  
-&set subt = pa
-suplot pa
+
+ block pa1 -location -%ca_x%-%pa_x% 0.5*(%ca_y%+%c_wid%) 0
+      plane 0 -rect %cr_r %p_dep%-%cr_r %ca_y%+%c_wid%+0.1
+      plane 0.5*%cr_r -rect 0.3*%cr_r %p_dep%-0.3*%cr_r %ca_y%+%c_wid%+0.1
+      plane %cr_r% %pa_x%+%c_len%+%pa_e%-0.5*%p_dep%+0.1 -rect 0 %p_dep% %ca_y%+%c_wid%+0.1
+ end
+    
+ $aft fwd circle
+ block pa2 -location -%ca_x%+(%c_len%+%pa_e%)-(0.5*%p_dep%) 0 0.5*%p_dep% 0 0 90
+    plane -0.01 %ca_y%-%c_wid%+0.1 -circ 0 0 0.5*%p_dep% 0 180/12 12+1
+ end  
+ union pa1 pa2 pa
+
+$&set subt = pa
+$suplot pa
 reflect_block pa sa y
 
 union pa cp tmp3 $work around
@@ -278,113 +189,283 @@ $added pontoon at aft
 union pa sa t4
 
 union t4 cp tad 
-&set subt = tad
-suplot tad
+$&set subt = tad
+$suplot tad
 
-$compartment
+$compartment start from fwd and anticlockwise to the aft.
+$ for -cart option
 $ (3)-(2) anticlockwise 
 $ (4)-(1)
-$ void 1 added pon at fwd
 
-$trim tank fwd
-block fttk -location %cf_x% 0 0
-  plane %c_len%-%pa_e% %c_len% -rect 0 %p_dep% 2*%c_wid%
+$fwd pump room1
+block fpr1 -location %cf_x% 0 0
+  plane -%c_wid% 0 -rect 0.92 %p_dep% 2*%c_len% 
 end
-$mud pump room1
-block fmp1 -location %cf_x% 0 0
-  plane -%c_len% 0 -rect 0 %p_dep% 2*%c_wid%
+$mud tank p1
+block pfm1 -location %cf_x% (%c_len%+0.9)/2 0
+   plane 0 %c_wid% -rect 2.1 %p_dep% %c_len%-0.9
 end
-$mud tank 1
-block pfm1 -location %cf_x% %c_wid%/2 0
-   plane 0 %c_len% -rect 0 %p_dep% %c_wid%
-end
-$mud tank 2
-reflect_block pfm1 sfm2 y
-$mud tank 3
-block pam3 -location -%ca_x%-%c_wid% %ca_y%+%c_len%/2 0
-   plane 0 %c_wid% -rect 0 %p_dep% %c_len%
-end
-$mud tank 5
-reflect_block pam3 sam5 y
-$mud tank 4
-block pam4 -location -%ca_x%-%c_wid% %ca_y%-%c_len%/2 0
-   plane 0 %c_wid% -rect 0 %p_dep% %c_len%
-end
-$mud tank 6
-reflect_block pam4 sam6 y
+$mud tank s1
+reflect_block pfm1 sfm1 y
 
-$mud pump room 2
-block pmp2 -location -%ca_x% %ca_y% 0
-  plane 0 %c_wid% -rect 0 %p_dep% 2*%c_len%
+$mud tank p2
+block pam2 -location -%ca_x%-%c_len% %ca_y%+(%c_wid-1.8)/2 0
+   plane 0 %c_len% -rect 2.1 %p_dep% %c_wid%-1.8
 end
-$mud pump room 3
-reflect_block pmp2 smp3 y
-$dynamic ballast tank 3
-block pdb3  -location -7.075 31.5 0 0 0 -%ang%
-  plane 0 9 -rect 0 %p_dep% %pf_wid%-%tunnel% 
+$mud tank s2
+reflect_block pam2 sam2 y
+
+$mud tank p3
+block pam3 -location -%ca_x%-%c_len% %ca_y%-1.8-(%c_wid%-1.8)/2 0
+   plane 0 %c_len% -rect 2.1 %p_dep% %c_wid%-1.8
 end
-$dynamic ballast tank 6
-reflect_block pdb3 sdb6 y
-$dynamic ballast tank 2
-block pdb2 -location 1.2 28 0 0 0 -%ang%
-  plane 0 9 -rect 0 %p_dep% %pf_wid%-%tunnel% 
+
+$mud tank s3
+reflect_block pam3 sam3 y
+
+$port pump room 2
+block ppr2 -location -%ca_x% %ca_y% 0
+  plane 0 %c_len% -rect 0.92 %p_dep% 2*%c_wid% 
 end
-$dynamic ballast tank 5
-reflect_block pdb2 sdb5 y
-$dynamic ballast tank 1
-block pdb1 -location 16.01 21.56 0 0 0 -%ang%
-  plane 0 10.8 -rect 0 %p_dep% %pf_wid%-%tunnel% 
+
+$stbd pump room spr2
+reflect_block ppr2 spr2 y
+
+&set x0 = 12.5
+&set x1 = 9
+&set x2 = 7.2
+&set x3 = 10.8
+&set t_len = 43.2
+&set y0 = 1.3
+&set y1 = 1.2
+$aft port thruster room p2
+block ptr0 -location -%ca_x%+%c_len/2 %ca_y+%tunnel 0 0 0 -%ang%
+  plane 0 %x0 -rect 0 %p_dep% %pf_wid%
 end
-$dynamic ballast tank 4
-reflect_block pdb1 sdb4 y
-$dynamic ballast tank 7
-block pdb7 -location -%ca_x%-%pa_x% 9+4.5 0
+
+difference ptr0 cap ptr2 $subtact port col
+reflect_block ptr2 str2 y
+
+delete_block ptr0
+
+block psb3 -loc -%ca_x%+%c_len/2 %ca_y+%tunnel*%y0 0 0 0 -%ang%
+  plane %x0 %x0+%x1 -rect 0 %p_dep %pf_wid-%tunnel
+end  
+
+reflect_block psb3 ssb3 y
+
+$port pontoon tunnel
+block ptu1 -location -%ca_x+%c_len+4.5 %ca_y-%c_wid*%y1 0 0 0 -%ang%
+  plane 0 %t_len/2 -rect 0 %p_dep %tunnel*0.95 $ two corner w 1.8 radius
+end
+
+reflect_block ptu1 stu1 y
+
+block ptu2 -location -%ca_x+%c_len+4.5 %ca_y-%c_wid*%y1 0 0 0 -%ang%
+  plane %t_len/2 %t_len -rect 0 %p_dep %tunnel*0.95 $ two corner w 1.8 radius
+end
+
+reflect_block ptu2 stu2 y
+
+block psb2 -loc -%ca_x%+%c_len/2 %ca_y+%tunnel*%y0 0 0 0 -%ang%
+  plane %x0+%x1 %x0+2*%x1 -rect 0 %p_dep %pf_wid-%tunnel
+end  
+
+reflect_block psb2 ssb2 y
+
+block ppdw -loc -%ca_x%+%c_len/2 %ca_y+%tunnel*%y0 0 0 0 -%ang%
+  plane %x0+2*%x1 %x0+2*%x1+%x2 -rect 0 %p_dep %pf_wid-%tunnel
+end  
+
+reflect_block ppdw spdw y
+
+block psb1 -loc -%ca_x%+%c_len/2 %ca_y+%tunnel*%y0 0 0 0 -%ang%
+  plane %x0+2*%x1+%x2 %x0+2*%x1+%x2+%x3 -rect 0 %p_dep %pf_wid-%tunnel
+end  
+
+reflect_block psb1 ssb1 y
+
+block ppbo -loc -%ca_x%+%c_len/2 %ca_y+%tunnel*%y0 0 0 0 -%ang%
+  plane %x0+2*%x1+%x2+%x3 %x0+2*%x1+%x2+%x3+%x2 -rect 0 %p_dep %pf_wid-%tunnel
+end  
+
+reflect_block ppbo spbr y
+
+block ptr0 -loc -%ca_x%+%c_len/2 %ca_y+%tunnel 0 0 0 -%ang%
+  plane %x0+2*%x1+%x2+%x3+%x2 %x0+2*%x1+%x2+%x3+%x2+%x1 -rect 0 %p_dep %pf_wid
+end  
+difference ptr0 cf ptr1 $fwd col 
+reflect_block ptr1 str1 y
+
+$aft pontoon tunnel
+block aptu -loc -%ca_x 13.2 0
+  plane 0 %tunnel -rect 0 %p_dep 13.2*2
+end
+
+reflect_block aptu astu y
+
+
+$aft thruster room p3
+block ptr3 -location -%ca_x%-%pa_x% 18+8.4/2 0
+  plane 0 %pa_x% -rect 0 %p_dep% 8.4
+end
+
+$thruster room s3
+reflect_block ptr3 str3 y
+
+$aft pontoon saltwater ballast
+block psb4 -loc -%ca_x%-%pa_x% 9+9/2 0
   plane 0 %pa_x% -rect 0 %p_dep% 9
 end
-$dynamic ballast tank 9
-reflect_block pdb7 sdb9 y
-$dynamic ballast tank 8
-block pdb8 -location -%ca_x%-%pa_x% 4.5 0
+reflect_block psb4 ssb4 y
+
+block psb5 -loc -%ca_x%-%pa_x% 9/2 0
   plane 0 %pa_x% -rect 0 %p_dep% 9
 end
-$dynamic ballst tank 10
-reflect_block pdb8 sdb10 y
+reflect_block psb5 ssb5 y
 
-$drill water 1
-block pd1 -location 9.5 24.4 0 0 0 -%ang%
-  plane 0 7.2 -rect 0 %p_dep% %pf_wid%-%tunnel% 
-end
-$drill water 2
-reflect_block pd1 sd2 y
-$base oil
-block pbo -location 26 17.31 0 0 0 -%ang%
-  plane 0 7.2 -rect 0 %p_dep% %pf_wid%-%tunnel% 
-end
-$brine
-reflect_block pbo sbr y
+&set h1 = 14.4
+&set h2 = 18.3
+&set h3 = 25.2
 
-$sponson
-union cap1 cap2 pcs1
-reflect_block pcs1 scs2 y
+$aft col
+block apa1 -location -%ca_x %ca_y %p_dep
+   plane -%c_len% -%c_len%+1.8 -rect 0 %h1-%p_dep 2*%c_wid%*0.98
+end
 
-$col double wall
-block ct1 -location -%ca_x %ca_y %p_dep
-   plane -%c_wid% -%c_wid%+1.8 -rect 0 8.4 2*%c_wid%
+block aps1 -loc -%ca_x %ca_y+%c_wid-0.9 %p_dep
+   plane -%c_len%+1.8 %c_len -rect 0 %h1-%p_dep 1.8
 end
-block ct2 -location -%ca_x %ca_y-%c_wid%+1.8 %p_dep
-   plane -%c_wid%+1.8 0 -rect 0 8.4 3.6
+union apa1 aps1 pcb1
+
+reflect_block pcb1 scb1 y
+
+reflect_block apa1 asa1 y
+reflect_block aps1 ass1 y
+
+block apa2 -location -%ca_x %ca_y %h1
+   plane -%c_len% -%c_len%+1.8 -rect 0 %h2-%h1 2*%c_wid%*0.98 $two corners
 end
-block ct3 -loc -%ca_x %ca_y+%c_wid-0.9 %p_dep
-   plane -%c_wid%+1.8 %c_wid-3.6 -rect 0 8.4 1.8
+
+block aps2 -loc -%ca_x %ca_y+%c_wid-0.9 %h1
+   plane -%c_len%+1.8 %c_len -rect 0 %h2-%h1 1.8
 end
-block ct4 -loc -%ca_x %ca_y+0.5*%c_wid 0 8.4 %c_wid
-   plane %c_wid-3.6 %c_wid -rect 0 8.4 %c_wid
+union apa2 aps2 pcb2
+
+reflect_block pcb2 scb2 y
+
+reflect_block aps2 asa2 y
+reflect_block aps2 ass2 y
+
+block apa3 -location -%ca_x %ca_y %h2
+   plane -%c_len% -%c_len%+1.8 -rect 0 %h3-%h2 2*%c_wid%*0.98 $two corners
 end
+
+block aps3 -loc -%ca_x %ca_y+%c_wid-0.9 %h2
+   plane -%c_len%+1.8 %c_len -rect 0 %h3-%h2 1.8
+end
+union apa3 aps3 pcb3
+
+reflect_block pcb3 scb3 y
+
+reflect_block apa3 asa3 y
+reflect_block aps3 ass3 y
+
+$safe zone in aft cols
+block psz1 -loc -%ca_x %ca_y-%c_wid+1.8 %p_dep
+  plane 0 %c_len -rect 0 %h3-%p_dep 3.6
+end
+
+block psz2 -loc -%ca_x+%c_len %ca_y-(7.5-3.6)/2 %p_dep
+  plane -3.6 0 -rect 0 %h3-%p_dep 7.5-3.6
+end
+
+union psz1 psz2 psz
+delete_block psz1 psz2
+reflect psz ssz y
+  
+$fwd col
+block ct1 -location %cf_x %c_len-1.8/2 %p_dep
+   plane -%c_wid% %c_wid% -rect 0 %h1-%p_dep 1.8*0.95 $two corners
+end
+
+reflect_block ct1 ct2 y
 union ct1 ct2 ct12
-union ct12 ct3 ct13
-union ct13 ct4 pct1
-reflect_block pct1 sct2 y
 
+block ct3 -loc %cf_x 0 %p_dep
+   plane %c_wid%-1.8 %c_wid  -rect 0 %h1-%p_dep 18-2*1.8
+end
+
+union ct12 ct3 fcb1
+
+delete_block ct1 ct2 ct3 ct12
+
+block ct1 -location %cf_x %c_len-1.8/2 %h1
+   plane -%c_wid% %c_wid% -rect 0 %h2-%h1 1.8*0.95 $two corners
+end
+
+reflect_block ct1 ct2 y
+union ct1 ct2 ct12
+
+block ct3 -loc %cf_x 0 %h1
+   plane %c_wid%-1.8 %c_wid  -rect 0 %h2-%h1 2*(%c_len-1.8)
+end
+
+union ct12 ct3 fcb2
+
+delete_block ct12 ct3
+
+block ct41 -loc %cf_x (%c_len-1.8)/2 %h1
+   plane %c_wid%-1.8 %c_wid  -rect 0 %h2-%h1 %c_len-1.8
+end
+
+block ct4 -loc %cf_x 0 %h1
+  plane %c_wid%-1.8 %c_wid  -rect 0 %h2-%h1 2*(%c_len-1.8)
+end
+
+reflect_block ct41 ct42 y
+
+union ct1 ct4 fpc2
+
+union ct2 ct4 fsc2
+
+delete_block ct1 ct2 ct41 ct42 ct4
+
+block ct1 -location %cf_x %c_len-1.8/2 %h2
+   plane -%c_wid% %c_wid% -rect 0 %h3-%h2 1.8*0.95 $two corners
+end
+
+reflect_block ct1 ct2 y
+union ct1 ct2 ct12
+
+block ct3 -loc %cf_x 0 %h2
+   plane %c_wid%-1.8 %c_wid  -rect 0 %h3-%h2 18-2*1.8
+end
+union ct12 ct3 fcb3
+
+delete_block ct12 ct3
+
+block ct41 -loc %cf_x (%c_len-1.8)/2 %h2
+   plane %c_wid%-1.8 %c_wid  -rect 0 %h3-%h2 %c_len-1.8
+end
+
+block ct4 -loc %cf_x 0 %h2
+  plane %c_wid%-1.8 %c_wid  -rect 0 %h3-%h2 2*(%c_len-1.8)
+end
+
+reflect_block ct41 ct42 y
+
+union ct1 ct4 fpc3
+
+union ct2 ct4 fsc3
+
+delete_block ct1 ct2 ct41 ct42
+
+$safe zone in fwd col
+
+block fsz -loc %cf_x 0 %p_dep
+ plane -%c_wid -%c_wid+3.6 -rect 0 %h3-%p_dep 2*(%c_len-1.8) 
+end 
 
 $
 $ Emitting the meshing
@@ -393,37 +474,67 @@ $
 rename_block @ -panel M -sort xyz -equiv .2 -point *M
 emit @ -body tad
 emit tad -piece ' -diftyp 3ddif -cs_curr 1 1 1 -cs_wind 0 0 0' -use_name YES
-emit fttk -use_name -compart "-descri 'fttk' " -piece '-perm -0.95'
-emit fmp1 -use_name -compart "-descri 'fmp1' " -piece '-perm -0.95'
-
-emit pft1  -use_name -compart "-descri 'pft1' " -piece '-perm -0.95'
-emit sft2  -use_name -compart "-descri 'sft2' " -piece '-perm -0.95'
-emit pmp2  -use_name -compart "-descri 'pmp2' " -piece '-perm -0.95'
-emit smp3  -use_name -compart "-descri 'smp3' " -piece '-perm -0.95'
-emit pfm1  -use_name -compart "-descri 'pfm1' " -piece '-perm -0.95'
-emit sfm2  -use_name -compart "-descri 'sfm2' " -piece '-perm -0.95'
-emit pam3  -use_name -compart "-descri 'pam3' " -piece '-perm -0.95'
-emit sam5  -use_name -compart "-descri 'sam5' " -piece '-perm -0.95'
-emit pam4  -use_name -compart "-descri 'pam4' " -piece '-perm -0.95'
-emit sam6  -use_name -compart "-descri 'sam6' " -piece '-perm -0.95'
-emit pdb1  -use_name -compart "-descri 'pdb1' " -piece '-perm -0.95'
-emit pdb2  -use_name -compart "-descri 'pdb2' " -piece '-perm -0.95'
-emit pdb3  -use_name -compart "-descri 'pdb4' " -piece '-perm -0.95'
-emit sdb4  -use_name -compart "-descri 'sdb4' " -piece '-perm -0.95'
-emit sdb5  -use_name -compart "-descri 'sdb5' " -piece '-perm -0.95'
-emit sdb6  -use_name -compart "-descri 'sdb6' " -piece '-perm -0.95'
-emit pdb7  -use_name -compart "-descri 'pdb7' " -piece '-perm -0.95'
-emit pdb8  -use_name -compart "-descri 'pdb8' " -piece '-perm -0.95'
-emit sdb9  -use_name -compart "-descri 'sdb9' " -piece '-perm -0.95'
-emit sdb10 -use_name -compart "-descri 'sdb10' " -piece '-perm -0.95'
-emit pd1   -use_name -compart "-descri 'pd1' " -piece '-perm -0.95'
-emit sd2   -use_name -compart "-descri 'sd2' " -piece '-perm -0.95'
-emit pbo   -use_name -compart "-descri 'pbo' " -piece '-perm -0.95'
-emit sbr   -use_name -compart "-descri 'sbr' " -piece '-perm -0.95'
-emit pcs1  -use_name -compart "-descri 'pcs1' " -piece '-perm -0.95'
-emit scs2  -use_name -compart "-descri 'scs2' " -piece '-perm -0.95'
-emit pct1  -use_name -compart "-descri 'pct1' " -piece '-perm -0.95'
-emit sct2  -use_name -compart "-descri 'sct2' " -piece '-perm -0.95'
-
-
+$emit fttk -use_name -compart "-descri 'fttk' " -piece '-perm -0.95'
+emit fpr1 -use_name -compart "-descri 'Fwd col pump room' " -piece '-perm -0.85'
+emit ptr1  -use_name -compart "-descri 'Port pn thrust rm p1' " -piece '-perm -0.85'
+emit str1  -use_name -compart "-descri 'Stbd pn thrust rm s1' " -piece '-perm -0.85'
+emit ptr2  -use_name -compart "-descri 'Port pn thrust rm p2' " -piece '-perm -0.85'
+emit str2  -use_name -compart "-descri 'Stbd pn thrust rm s2' " -piece '-perm -0.85'
+emit ptr3  -use_name -compart "-descri 'Aft pn thrust rm p3' " -piece '-perm -0.85'
+emit str3  -use_name -compart "-descri 'Aft pn thrust rm s3' " -piece '-perm -0.85'
+emit ppr2  -use_name -compart "-descri 'Port cl pump rm p2' " -piece '-perm -0.85'
+emit spr2  -use_name -compart "-descri 'Stbd cl pump rm s2' " -piece '-perm -0.85'
+emit pfm1  -use_name -compart "-descri 'Fwd cl mud tk p1' " -piece '-perm -0.95'
+emit sfm1  -use_name -compart "-descri 'Fwd cl mud tk s1' " -piece '-perm -0.95'
+emit pam2  -use_name -compart "-descri 'Port cl mud tk p2' " -piece '-perm -0.95'
+emit sam2  -use_name -compart "-descri 'Stbd cl mud tk s2' " -piece '-perm -0.95'
+emit pam3  -use_name -compart "-descri 'Port cl mud tk p3' " -piece '-perm -0.95'
+emit sam3  -use_name -compart "-descri 'Stbd cl mud tk s3' " -piece '-perm -0.95'
+emit psb1  -use_name -compart "-descri 'Aft pn sw blst p1' " -piece '-perm -0.95'
+emit psb2  -use_name -compart "-descri 'Aft pn sw blst p2' " -piece '-perm -0.95'
+emit psb3  -use_name -compart "-descri 'Port pn sw blst p3' " -piece '-perm -0.95'
+emit ssb1  -use_name -compart "-descri 'Aft pn sw blst s1' " -piece '-perm -0.95'
+emit ssb2  -use_name -compart "-descri 'Aft pn sw blst s2' " -piece '-perm -0.95'
+emit ssb3  -use_name -compart "-descri 'Stbd pn sw blst s3' " -piece '-perm -0.95'
+emit psb4  -use_name -compart "-descri 'Port pn sw blst p4' " -piece '-perm -0.95'
+emit psb5  -use_name -compart "-descri 'Port pn sw blst p5' " -piece '-perm -0.95'
+emit ssb4  -use_name -compart "-descri 'Stbd pn sw blst s4' " -piece '-perm -0.95'
+emit ssb5  -use_name -compart "-descri 'Stbd pn sw blst s5' " -piece '-perm -0.95'
+emit ppdw  -use_name -compart "-descri 'Port pn drillwater' " -piece '-perm -0.95'
+emit spdw   -use_name -compart "-descri 'Stbd pn drillwater' " -piece '-perm -0.95'
+emit ppbo   -use_name -compart "-descri 'Port pn base oil' " -piece '-perm -0.95'
+emit spbr   -use_name -compart "-descri 'Stbd pn brine' " -piece '-perm -0.95'
+$emit apa1  -use_name -compart "-descri 'apa1' " -piece '-perm -0.95'
+$emit aps1  -use_name -compart "-descri 'aps1' " -piece '-perm -0.95'
+$emit asa1  -use_name -compart "-descri 'asa1' " -piece '-perm -0.95'
+$emit ass1  -use_name -compart "-descri 'ass1' " -piece '-perm -0.95'
+$emit aps2  -use_name -compart "-descri 'aps2' " -piece '-perm -0.95'
+$emit asa2  -use_name -compart "-descri 'asa2' " -piece '-perm -0.95'
+$emit ass2  -use_name -compart "-descri 'ass2' " -piece '-perm -0.95'
+$emit apa3  -use_name -compart "-descri 'apa3' " -piece '-perm -0.95'
+$emit aps3  -use_name -compart "-descri 'aps3' " -piece '-perm -0.95'
+$emit asa3  -use_name -compart "-descri 'asa3' " -piece '-perm -0.95'
+$emit ass3  -use_name -compart "-descri 'ass3' " -piece '-perm -0.95'
+emit pcb1  -use_name -compart "-descri 'Port cl bl 6.6-14.4' " -piece '-perm -0.95'
+emit scb1  -use_name -compart "-descri 'Stbd cl bl 6.6-14.4' " -piece '-perm -0.95'
+emit pcb2  -use_name -compart "-descri 'Port cl bl 14.4-18.3' " -piece '-perm -0.95'
+emit scb2  -use_name -compart "-descri 'Stbd cl bl 14.4-18.3' " -piece '-perm -0.95'
+emit pcb3  -use_name -compart "-descri 'Port cl bl 18.3-25.2' " -piece '-perm -0.95'
+emit scb3  -use_name -compart "-descri 'Stbd cl bl 18.3-25.2' " -piece '-perm -0.95'
+emit psz   -use_name -compart "-descri 'Port cl safe zone'  " -piece '-perm -0.95'
+emit ssz   -use_name -compart "-descri 'Stbd cl safe zone'  " -piece '-perm -0.95'
+$emit fpc2 -use_name -compart "-descri 'fpc2' " -piece '-perm -0.95'
+$emit fsc2 -use_name -compart "-descri 'fsc2' " -piece '-perm -0.95'
+$emit fpc3 -use_name -compart "-descri 'fpc3' " -piece '-perm -0.95'
+$emit fsc3 -use_name -compart "-descri 'fsc3' " -piece '-perm -0.95'
+emit fcb1  -use_name -compart "-descri 'Fwd cl bl 6.6-14.4' " -piece '-perm -0.95'
+emit fcb2  -use_name -compart "-descri 'Fwd cl bl 14.4-18.3' " -piece '-perm -0.95'
+emit fcb3  -use_name -compart "-descri 'Fwd cl bl 18.3-25.2' " -piece '-perm -0.95'
+emit fsz   -use_name -compart "-descri 'Fwd cl safe zone'  " -piece '-perm -0.95'
+emit ptu1  -use_name -compart "-descri 'Port tunnel' " -piece '-perm -0.95'
+emit stu1  -use_name -compart "-descri 'Stbd tunnel' " -piece '-perm -0.95'
+emit ptu2  -use_name -compart "-descri 'Port tunnel' " -piece '-perm -0.95'
+emit stu2  -use_name -compart "-descri 'Stbd tunnel' " -piece '-perm -0.95'
+emit aptu  -use_name -compart "-descri 'Aft tunnel of port' " -piece '-perm -0.95'
+emit astu  -use_name -compart "-descri 'Aft tunnel of stbd' " -piece '-perm -0.95'
 &finish
